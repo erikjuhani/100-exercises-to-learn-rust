@@ -24,6 +24,17 @@ pub struct Ticket {
     pub status: Status,
 }
 
+impl From<(TicketId, TicketDraft)> for Ticket {
+    fn from(item: (TicketId, TicketDraft)) -> Self {
+        Ticket {
+            id: item.0,
+            title: item.1.title,
+            description: item.1.description,
+            status: Status::ToDo,
+        }
+    }
+}
+
 #[derive(Clone, Debug, PartialEq)]
 pub struct TicketDraft {
     pub title: TicketTitle,
@@ -44,8 +55,14 @@ impl TicketStore {
         }
     }
 
-    pub fn add_ticket(&mut self, ticket: Ticket) {
-        self.tickets.push(ticket);
+    pub fn add_ticket(&mut self, ticket_draft: TicketDraft) -> TicketId {
+        let ticket_id = TicketId(self.tickets.len() as u64);
+        self.tickets.push((ticket_id, ticket_draft).into());
+        ticket_id
+    }
+
+    pub fn get(&self, id: TicketId) -> Option<&Ticket> {
+        self.tickets.iter().find(|ticket| ticket.id == id)
     }
 }
 
